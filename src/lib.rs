@@ -51,7 +51,7 @@ fn setup_server() -> Result<rocket::Rocket, errors::Error> {
         .manage(db)
         .manage(harsh)
         .attach(cors)
-        .mount("/auth", routes![routes::auth::sign_in])
+        .mount("/auth", routes![routes::auth::params, routes::auth::sign_in, routes::auth::sign_up])
         .catch(errors![routes::errs::not_found, routes::errs::unauthorized, routes::errs::internal_server_error])
     )
 }
