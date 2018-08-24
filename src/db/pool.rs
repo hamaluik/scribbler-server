@@ -9,20 +9,10 @@ use r2d2_sqlite::SqliteConnectionManager;
 pub type DatabasePool = Pool<SqliteConnectionManager>;
 pub struct DbConn(pub PooledConnection<SqliteConnectionManager>);
 
-#[cfg(not(test))]
 pub fn get_database_pool(db_file: &str) -> DatabasePool {
     let manager = SqliteConnectionManager::file(db_file);
     Pool::builder()
-        .max_size(15)
-        .build(manager)
-        .expect("db pool") // TODO: better error handling
-}
-
-#[cfg(test)]
-pub fn get_database_pool(db_file: &str) -> DatabasePool {
-    let manager = SqliteConnectionManager::file(db_file);
-    Pool::builder()
-        .max_size(1)
+        .max_size(10)
         .build(manager)
         .expect("db pool") // TODO: better error handling
 }

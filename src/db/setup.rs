@@ -1,5 +1,3 @@
-use rusqlite;
-
 use errors::Error;
 use db::pool::DatabasePool;
 
@@ -15,24 +13,36 @@ pub fn initialize_tables(pool: &DatabasePool) -> Result<(), Error> {
             server_key text not null,
             salt text not null
         )", &[]) {
-        return Error::DatabaseError(e);
+        return Err(Error::DatabaseError(e));
     }
 
     if let Err(e) = conn.execute("create table if not exists items (
             id integer primary key,
-            owner integer not null
+            owner integer not null,
             version int not null,
             content text not null,
             nonce text not null,
             foreign key (owner) references users(id)
         )", &[]) {
-        return Error::DatabaseError(e);
+        return Err(Error::DatabaseError(e));
     }
+
+    /*if let Err(e) = conn.execute("create table if not exists items_shared (
+            id integer primary key,
+            owner integer not null
+            version int not null,
+            content text not null,
+            salt text not null,
+            nonce text not null,
+            foreign key (owner) references users(id)
+        )", &[]) {
+        return Err(Error::DatabaseError(e));
+    }*/
 
     Ok(())
 }
 
-pub fn register_user(pool: &DatabasePool, name: &str, server_key: &str, salt: &str) -> Result<u32, Error> {
+/*pub fn register_user(pool: &DatabasePool, name: &str, server_key: &str, salt: &str) -> Result<u32, Error> {
     let conn = match pool.get() {
         Ok(c) => c,
         Err(_) => return Err(Error::PoolError)
@@ -48,4 +58,4 @@ pub fn register_user(pool: &DatabasePool, name: &str, server_key: &str, salt: &s
     println!("created used with id: {}", id);
 
     Ok(id)
-}
+}*/

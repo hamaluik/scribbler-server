@@ -1,0 +1,9 @@
+registration_key = "Hunter2"
+
+[jwt]
+secret = "I like pickles because they're so delicious!"
+
+[hashids]
+salt = "Salty salt salt, I love salt"
+alphabet = "abcdefghijklmnopqrstuvwxyz012345679"
+min_length = 16

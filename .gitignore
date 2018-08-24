@@ -1,4 +1,6 @@
 
+*.db
+
 # Created by https://www.gitignore.io/api/windows,osx,linux,visualstudiocode,rust
 
 ### Linux ###

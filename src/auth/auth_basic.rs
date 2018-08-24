@@ -2,7 +2,6 @@ use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
 use rocket::{Outcome, State};
 use base64;
-use bcrypt;
 
 use ::db::DatabasePool;
 
@@ -62,7 +61,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for AuthBasic {
 
         let mut stmt = conn.prepare("select id from users where name=?1 and server_key=?2")
             .expect("prepare select");
-        let uid: u32 = match stmt.query_row(&[&name], |row| {
+        let uid: u32 = match stmt.query_row(&[&name, &server_key], |row| {
             row.get(0)
         }) {
             Ok(data) => data,
