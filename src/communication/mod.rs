@@ -20,7 +20,12 @@ pub struct SignUpForm {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
     pub id: Option<String>,
-    pub version: u64,
+    pub version: u32,
     pub content: String,
     pub nonce: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ID {
+    pub id: String,
 }

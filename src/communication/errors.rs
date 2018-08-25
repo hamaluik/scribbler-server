@@ -8,6 +8,7 @@ pub enum ErrorResponses {
     Unauthorized,
     InternalServerError,
     BadRequest,
+    NotFound,
 }
 
 impl<'r> Responder<'r> for ErrorResponses {
@@ -17,6 +18,7 @@ impl<'r> Responder<'r> for ErrorResponses {
                 ErrorResponses::Unauthorized => Status::Unauthorized,
                 ErrorResponses::InternalServerError => Status::InternalServerError,
                 ErrorResponses::BadRequest => Status::BadRequest,
+                ErrorResponses::NotFound => Status::NotFound,
             })
             .ok()
     }
