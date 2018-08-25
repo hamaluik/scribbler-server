@@ -6,6 +6,3 @@ pub use ::auth::auth_basic::AuthBasic;
 pub use ::auth::auth_token::AuthToken;
 pub use ::auth::tokens::build_token;
 pub use ::auth::tokens::validate_token;
-
-#[cfg(test)]
-mod tests;

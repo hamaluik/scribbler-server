@@ -52,6 +52,26 @@ pub struct SignUpForm {
 
 #[post("/", data="<form>")]
 pub fn sign_up(form: Json<SignUpForm>, config: State<Config>, conn: DbConn) -> Result<EmptyOK, ErrorResponses> {
+    if form.name.trim().len() == 0 {
+        warn!("attempted to sign up with empty name");
+        return Err(ErrorResponses::BadRequest);
+    }
+
+    if form.server_key.trim().len() == 0 {
+        warn!("attempted to sign up with empty server_key");
+        return Err(ErrorResponses::BadRequest);
+    }
+
+    if form.salt.trim().len() == 0 {
+        warn!("attempted to sign up with empty salt");
+        return Err(ErrorResponses::BadRequest);
+    }
+
+    if form.registration_key.trim().len() == 0 {
+        warn!("attempted to sign up with empty registration_key");
+        return Err(ErrorResponses::BadRequest);
+    }
+
     // make sure the registration key is valid
     if form.registration_key != config.registration_key {
         warn!("Invalid registration key");
@@ -71,9 +91,10 @@ pub fn sign_up(form: Json<SignUpForm>, config: State<Config>, conn: DbConn) -> R
         }
     };
 
+    println!("There are {} users with the name {}", count, form.name);
     if count > 0 {
         warn!("User already exists!");
-        return Err(ErrorResponses::Conflict);
+        return Err(ErrorResponses::Unauthorized);
     }
 
     // TODO: validate that the data is base64!
@@ -81,10 +102,18 @@ pub fn sign_up(form: Json<SignUpForm>, config: State<Config>, conn: DbConn) -> R
     // ok, name is good, let's create the user
     let mut stmt = conn.prepare("insert into users(name, server_key, salt) values(?1, ?2, ?3)")
         .expect("prepare statement");
-    if let Err(e) = stmt.execute(&[&form.name, &form.server_key, &form.salt]) {
-        warn!("Failed to register user: {:?}", e);
-        return Err(ErrorResponses::InternalServerError);
-    }
+    match stmt.execute(&[&form.name, &form.server_key, &form.salt]) {
+        Ok(affected_rows) => {
+            if affected_rows != 1 {
+                warn!("Failed to register user! (No changed rows)");
+                return Err(ErrorResponses::InternalServerError);
+            }
+        },
+        Err(e) => {
+            warn!("Failed to register user: {:?}", e);
+            return Err(ErrorResponses::InternalServerError);
+        }
+    };
 
     // great, we inserted!
     Ok(EmptyOK())

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 #[derive(Debug)]
 enum Source {
     File(PathBuf),
-    _Memory,
+    Memory,
 }
 
 /// An `r2d2::ManageConnection` for `rusqlite::Connection`s.
@@ -20,8 +20,8 @@ impl SqliteConnectionManager {
     }
 
     /// Creates a new `SqliteConnectionManager` from memory.
-    pub fn _memory() -> Self {
-        SqliteConnectionManager(Source::_Memory)
+    pub fn memory() -> Self {
+        SqliteConnectionManager(Source::Memory)
     }
 }
 
@@ -32,7 +32,7 @@ impl r2d2::ManageConnection for SqliteConnectionManager {
     fn connect(&self) -> Result<Connection, Error> {
         match self.0 {
             Source::File(ref path) => Connection::open(path),
-            Source::_Memory => Connection::open_in_memory(),
+            Source::Memory => Connection::open_in_memory(),
         }.map_err(Into::into)
     }
 
