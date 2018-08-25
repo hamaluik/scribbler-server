@@ -8,7 +8,6 @@ use communication::Item;
 use communication::ID;
 use communication::EmptyOK;
 use db::DbConn;
-use config::Config;
 
 #[get("/")]
 pub fn get_all_items(conn: DbConn, harsh: State<Harsh>, auth: AuthToken) -> Result<Json<Vec<Item>>, ErrorResponses> {
@@ -59,8 +58,52 @@ pub fn get_all_items(conn: DbConn, harsh: State<Harsh>, auth: AuthToken) -> Resu
     Ok(Json(items))
 }
 
+#[get("/<hid>")]
+pub fn get_item(hid: String, harsh: State<Harsh>, conn: DbConn, auth: AuthToken) -> Result<Json<Item>, ErrorResponses> {
+    // parse the hid!
+    let id: u32 = match harsh.decode(hid) {
+        Some(decoded) => decoded[0] as u32,
+        None => return Err(ErrorResponses::NotFound)
+    };
+
+    let mut stmt = conn.prepare("select id, version, content, nonce from items where id=?1 and owner=?2 limit 1")
+        .expect("prepare select");
+    let item: Item = match stmt.query_row(&[&id, &auth.uid], |row| {
+        let id: u32 = row.get(0);
+        let hid = harsh.encode(&[id as u64]).expect("harsh encode");
+
+        Item {
+            id: Some(hid),
+            version: row.get(1),
+            content: row.get(2),
+            nonce: row.get(3)
+        }
+    }) {
+        Ok(data) => data,
+        Err(e) => {
+            error!("failed to query database: {:?}", e);
+            return Err(ErrorResponses::NotFound);
+        }
+    };
+
+    Ok(Json(item))
+}
+
 #[post("/", data="<form>")]
-pub fn create_item(form: Json<Item>, harsh: State<Harsh>, config: State<Config>, conn: DbConn, auth: AuthToken) -> Result<Json<ID>, ErrorResponses> {
+pub fn create_item(form: Json<Item>, harsh: State<Harsh>, conn: DbConn, auth: AuthToken) -> Result<Json<ID>, ErrorResponses> {
+    let mut stmt = conn.prepare("select count(id) from users")
+        .expect("prepare select");
+    let count: u32 = match stmt.query_row(&[], |row| {
+        row.get(0)
+    }) {
+        Ok(data) => data,
+        Err(e) => {
+            error!("failed to query database: {:?}", e);
+            return Err(ErrorResponses::InternalServerError);
+        }
+    };
+    debug!("There are {} users!", count);
+
     // insert it
     let mut stmt = conn.prepare("insert into items(owner, version, content, nonce) values(?1, ?2, ?3, ?4)")
         .expect("prepare statement");
@@ -96,7 +139,7 @@ pub fn create_item(form: Json<Item>, harsh: State<Harsh>, config: State<Config>,
 }
 
 #[patch("/<id>", data="<form>")]
-pub fn update_item(id: String, form: Json<Item>, harsh: State<Harsh>, config: State<Config>, conn: DbConn, auth: AuthToken) -> Result<EmptyOK, ErrorResponses> {
+pub fn update_item(id: String, form: Json<Item>, harsh: State<Harsh>, conn: DbConn, auth: AuthToken) -> Result<EmptyOK, ErrorResponses> {
     // it should already exist, we're just updating it
     // parse the hid!
     let id: u32 = match harsh.decode(id) {
@@ -105,10 +148,10 @@ pub fn update_item(id: String, form: Json<Item>, harsh: State<Harsh>, config: St
     };
 
     // make sure it already exists and we own it
-    let mut stmt = conn.prepare("select count(id), owner from items where id=?1")
+    let mut stmt = conn.prepare("select count(id) from items where id=?1 and owner=?2")
         .expect("prepare select");
-    let result: (u32, u32) = match stmt.query_row(&[&id], |row| {
-        (row.get(0), row.get(1))
+    let count: u32 = match stmt.query_row(&[&id, &auth.uid], |row| {
+        row.get(0)
     }) {
         Ok(data) => data,
         Err(e) => {
@@ -116,11 +159,7 @@ pub fn update_item(id: String, form: Json<Item>, harsh: State<Harsh>, config: St
             return Err(ErrorResponses::InternalServerError);
         }
     };
-    if result.1 != auth.uid {
-        warn!("tried to edit item which didn't own");
-        return Err(ErrorResponses::Unauthorized);
-    }
-    if result.0 != 1 {
+    if count != 1 {
         warn!("tried to update item which does not exist");
         return Err(ErrorResponses::NotFound);
     }
@@ -137,6 +176,51 @@ pub fn update_item(id: String, form: Json<Item>, harsh: State<Harsh>, config: St
         },
         Err(e) => {
             warn!("failed to update item: {:?}", e);
+            return Err(ErrorResponses::InternalServerError);
+        }
+    };
+
+    Ok(EmptyOK())
+}
+
+#[delete("/<id>")]
+pub fn delete_item(id: String, harsh: State<Harsh>, conn: DbConn, auth: AuthToken) -> Result<EmptyOK, ErrorResponses> {
+    // it should already exist, we're just updating it
+    // parse the hid!
+    let id: u32 = match harsh.decode(id) {
+        Some(decoded) => decoded[0] as u32,
+        None => return Err(ErrorResponses::NotFound)
+    };
+
+    // make sure it already exists and we own it
+    let mut stmt = conn.prepare("select count(id) from items where id=?1 and owner=?2")
+        .expect("prepare select");
+    let count: u32 = match stmt.query_row(&[&id, &auth.uid], |row| {
+        row.get(0)
+    }) {
+        Ok(data) => data,
+        Err(e) => {
+            error!("failed to query database: {:?}", e);
+            return Err(ErrorResponses::InternalServerError);
+        }
+    };
+    if count != 1 {
+        warn!("tried to update item which does not exist");
+        return Err(ErrorResponses::NotFound);
+    }
+
+    // delete it
+    let mut stmt = conn.prepare("delete from items where id=?1 and owner=?2")
+        .expect("prepare statement");
+    match stmt.execute(&[&id, &auth.uid]) {
+        Ok(affected_rows) => {
+            if affected_rows != 1 {
+                warn!("failed to delete item! (no changed rows)");
+                return Err(ErrorResponses::InternalServerError);
+            }
+        },
+        Err(e) => {
+            warn!("failed to delete item: {:?}", e);
             return Err(ErrorResponses::InternalServerError);
         }
     };

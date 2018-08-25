@@ -2,6 +2,7 @@ use rocket::http::{ContentType, Method, Status, Header};
 use rocket::local::Client;
 use serde_json;
 
+use communication::SignInResponse;
 mod sign_up;
 
 #[test]
@@ -85,10 +86,6 @@ fn refresh() {
     assert_eq!(response.body_string(), Some("{\"salt\":\"nacl\"}".to_string()));
 
     // sign in
-    #[derive(Debug, Serialize, Deserialize)]
-    struct SignInResponse {
-        token: String
-    }
     let mut response = client.req(Method::Get, "/auth/").header(Header::new("Authorization", "Basic a2VudG9uOnNlY3JldCBwYXNzd29yZA==")).dispatch();
     assert_eq!(response.status(), Status::Ok);
     let token = match response.body_string() {

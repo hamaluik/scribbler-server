@@ -10,6 +10,11 @@ pub struct AuthParams {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SignInResponse {
+    pub token: String
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SignUpForm {
     pub name: String,
     pub server_key: String,

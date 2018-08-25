@@ -18,6 +18,8 @@ extern crate rocket_cors;
 extern crate log;
 extern crate simple_logger;
 extern crate r2d2;
+#[cfg(test)]
+use std::sync::{Once, ONCE_INIT};
 
 mod auth;
 pub mod config;
@@ -47,12 +49,18 @@ fn get_rocket_config(_config: &Config) -> rocket::Config {
 #[cfg(not(test))]
 fn initialize_logger() {
     // TODO: use a config var to set the level
-    //simple_logger::init().expect("simple_logger init");
     simple_logger::init_with_level(log::Level::Info).expect("simple_logger init");
 }
 
 #[cfg(test)]
-fn initialize_logger() {}
+static INIT: Once = ONCE_INIT;
+
+#[cfg(test)]
+fn initialize_logger() {
+    INIT.call_once(|| {
+        simple_logger::init_with_level(log::Level::Debug).expect("simple_logger init");
+    });
+}
 
 fn setup_server() -> Result<rocket::Rocket, errors::Error> {
     initialize_logger();
@@ -77,7 +85,7 @@ fn setup_server() -> Result<rocket::Rocket, errors::Error> {
         },
     };
 
-    let db = db::pool::get_database_pool("scribbler.db");
+    let db = db::pool::get_database_pool("scribbler.test.db");
     db::setup::initialize_tables(&db)?;
 
     let harsh = harsh::HarshBuilder::new()
@@ -96,7 +104,7 @@ fn setup_server() -> Result<rocket::Rocket, errors::Error> {
         .manage(harsh)
         .attach(cors)
         .mount("/auth", routes![routes::auth::params, routes::auth::sign_in, routes::auth::refresh, routes::auth::sign_up])
-        .mount("/items", routes![routes::items::get_all_items, routes::items::create_item, routes::items::update_item])
+        .mount("/items", routes![routes::items::get_all_items, routes::items::get_item, routes::items::create_item, routes::items::update_item, routes::items::delete_item])
         .catch(catchers![routes::errs::not_found, routes::errs::unauthorized, routes::errs::internal_server_error])
     )
 }
