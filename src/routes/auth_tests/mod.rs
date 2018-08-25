@@ -11,7 +11,7 @@ fn get_params() {
     let client = Client::new(rocket).unwrap();
 
     // sign up
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "secret password".to_string(),
         salt: "nacl".to_string(),
@@ -34,7 +34,7 @@ fn sign_in() {
     let client = Client::new(rocket).unwrap();
 
     // sign up
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "secret password".to_string(),
         salt: "nacl".to_string(),
@@ -69,7 +69,7 @@ fn refresh() {
     let client = Client::new(rocket).unwrap();
 
     // sign up
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "secret password".to_string(),
         salt: "nacl".to_string(),

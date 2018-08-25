@@ -24,7 +24,7 @@ pub mod config;
 mod db;
 pub mod errors;
 mod routes;
-mod responses;
+mod communication;
 pub mod r2d2_sqlite;
 
 use config::{Config, JWTConfig, HashIDSConfig};
@@ -47,7 +47,8 @@ fn get_rocket_config(_config: &Config) -> rocket::Config {
 #[cfg(not(test))]
 fn initialize_logger() {
     // TODO: use a config var to set the level
-    simple_logger::init().expect("simple_logger init");
+    //simple_logger::init().expect("simple_logger init");
+    simple_logger::init_with_level(log::Level::Info).expect("simple_logger init");
 }
 
 #[cfg(test)]
@@ -89,12 +90,13 @@ fn setup_server() -> Result<rocket::Rocket, errors::Error> {
     
     let rocket_config = get_rocket_config(&config);
 
-    Ok(rocket::custom(rocket_config, true)
+    Ok(rocket::custom(rocket_config, false)
         .manage(config)
         .manage(db)
         .manage(harsh)
         .attach(cors)
         .mount("/auth", routes![routes::auth::params, routes::auth::sign_in, routes::auth::refresh, routes::auth::sign_up])
+        .mount("/items", routes![routes::items::get_all_items])
         .catch(catchers![routes::errs::not_found, routes::errs::unauthorized, routes::errs::internal_server_error])
     )
 }

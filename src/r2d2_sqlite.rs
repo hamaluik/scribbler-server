@@ -1,5 +1,10 @@
+extern crate r2d2;
+extern crate rusqlite;
+
+
 use rusqlite::{Connection, Error};
 use std::path::{Path, PathBuf};
+
 
 #[derive(Debug)]
 enum Source {
@@ -16,7 +21,7 @@ impl SqliteConnectionManager {
     ///
     /// See `rusqlite::Connection::open`
     pub fn file<P: AsRef<Path>>(path: P) -> Self {
-        SqliteConnectionManager(Source::File(path.as_ref().to_path_buf()))
+       SqliteConnectionManager(Source::File(path.as_ref().to_path_buf()))
     }
 
     /// Creates a new `SqliteConnectionManager` from memory.
@@ -32,8 +37,9 @@ impl r2d2::ManageConnection for SqliteConnectionManager {
     fn connect(&self) -> Result<Connection, Error> {
         match self.0 {
             Source::File(ref path) => Connection::open(path),
-            Source::Memory => Connection::open_in_memory(),
-        }.map_err(Into::into)
+            Source::Memory => Connection::open_in_memory()
+         }
+            .map_err(Into::into)
     }
 
     fn is_valid(&self, conn: &mut Connection) -> Result<(), Error> {

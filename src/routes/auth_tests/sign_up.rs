@@ -8,7 +8,7 @@ fn sign_up() {
     let rocket = ::setup_server().expect("server setup");
     let client = Client::new(rocket).unwrap();
 
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "I am a server key!".to_string(),
         salt: "I am the salt!".to_string(),
@@ -94,7 +94,7 @@ fn sign_up_invalid_registration_code() {
     let rocket = ::setup_server().expect("server setup");
     let client = Client::new(rocket).unwrap();
 
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "I am a server key!".to_string(),
         salt: "I am the salt!".to_string(),
@@ -112,7 +112,7 @@ fn sign_up_empty_name() {
     let rocket = ::setup_server().expect("server setup");
     let client = Client::new(rocket).unwrap();
 
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "".to_string(),
         server_key: "server_key".to_string(),
         salt: "salt".to_string(),
@@ -130,7 +130,7 @@ fn sign_up_empty_server_key() {
     let rocket = ::setup_server().expect("server setup");
     let client = Client::new(rocket).unwrap();
 
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: " ".to_string(),
         salt: "salt".to_string(),
@@ -148,7 +148,7 @@ fn sign_up_empty_salt() {
     let rocket = ::setup_server().expect("server setup");
     let client = Client::new(rocket).unwrap();
 
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "server_key".to_string(),
         salt: "  ".to_string(),
@@ -167,7 +167,7 @@ fn sign_up_already_exists() {
     let client = Client::new(rocket).unwrap();
 
     // submit the first time
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "I am a server key!".to_string(),
         salt: "I am the salt!".to_string(),
@@ -178,7 +178,7 @@ fn sign_up_already_exists() {
     assert_eq!(response.status(), Status::Ok);
 
     // resubmit!
-    let details = ::routes::auth::SignUpForm {
+    let details = ::communication::SignUpForm {
         name: "kenton".to_string(),
         server_key: "A different key".to_string(),
         salt: "But the same salt".to_string(),

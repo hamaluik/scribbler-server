@@ -6,8 +6,9 @@ use auth::build_token;
 use auth::AuthBasic;
 use auth::AuthToken;
 use config::Config;
-use responses::EmptyOK;
-use responses::ErrorResponses;
+use communication::EmptyOK;
+use communication::ErrorResponses;
+use communication::SignUpForm;
 use db::DbConn;
 
 #[get("/params/<name>")]
@@ -40,14 +41,6 @@ pub fn refresh(config: State<Config>, harsh: State<Harsh>, auth: AuthToken) -> J
     Json(json!({
         "token": build_token(&config.jwt.secret, &harsh, auth.uid)
     }))
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SignUpForm {
-    pub name: String,
-    pub server_key: String,
-    pub salt: String,
-    pub registration_key: String,
 }
 
 #[post("/", data="<form>")]
