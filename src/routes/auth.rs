@@ -91,7 +91,6 @@ pub fn sign_up(form: Json<SignUpForm>, config: State<Config>, conn: DbConn) -> R
         }
     };
 
-    println!("There are {} users with the name {}", count, form.name);
     if count > 0 {
         warn!("User already exists!");
         return Err(ErrorResponses::Unauthorized);
