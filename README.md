@@ -1,5 +1,7 @@
 # Scribbler
 
+[![GitHub license](https://img.shields.io/badge/license-Apache%202-blue.svg?style=flat-square)](https://raw.githubusercontent.com/hamaluik/scribbler-server/master/LICENSE) [![Travis](https://img.shields.io/travis/rust-lang/rust/master.svg?style=flat-square)](https://travis-ci.org/hamaluik/scribbler-server.svg?branch=master)
+
 _Scribbler_ is a self-hosted, end-to-end encrypted note taking app which aims to be in a similar realm to [Standard Notes](https://standardnotes.org/) but with default [Markdown](https://standardnotes.org/) and entirely self-hosted.
 
 ## Motivation
