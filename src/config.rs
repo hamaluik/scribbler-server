@@ -18,6 +18,7 @@ pub struct HashIDSConfig {
 #[derive(Deserialize)]
 pub struct Config {
     pub registration_key: String,
+    pub port: u16,
     pub jwt: JWTConfig,
     pub hashids: HashIDSConfig,
 }

@@ -32,8 +32,9 @@ pub mod r2d2_sqlite;
 use config::{Config, JWTConfig, HashIDSConfig};
 
 #[cfg(not(test))]
-fn get_rocket_config(_config: &Config) -> rocket::Config {
-    rocket::config::ConfigBuilder::new(rocket::config::Environment::Development)
+fn get_rocket_config(config: &Config) -> rocket::Config {
+    rocket::config::ConfigBuilder::new(rocket::config::Environment::Production)
+        .port(config.port)
         .finalize()
         .unwrap()
 }
@@ -72,6 +73,7 @@ fn setup_server() -> Result<rocket::Rocket, errors::Error> {
             warn!("Using default config due to error: {:?}", e);
             Config {
                 registration_key: "default_reg_key".to_string(),
+                port: 9090,
                 jwt: JWTConfig {
                     secret: "default_secret".to_string(),
                 },
