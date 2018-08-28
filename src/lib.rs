@@ -87,7 +87,7 @@ fn setup_server() -> Result<rocket::Rocket, errors::Error> {
         },
     };
 
-    let db = db::pool::get_database_pool("scribbler.test.db");
+    let db = db::pool::get_database_pool("scribbler.db");
     db::setup::initialize_tables(&db)?;
 
     let harsh = harsh::HarshBuilder::new()
